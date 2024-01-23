@@ -1,0 +1,8 @@
+__pycache__/
+venv/
+.env
+testes/
+teste*
+mongo/
+k8s/
+db.json
