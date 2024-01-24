@@ -1,24 +1,51 @@
 from tinydb import TinyDB, Query
 from datetime import datetime
 
-db = TinyDB('db.json')
+db = TinyDB('db.json', indent=4)
+db_dados = db.table("dados")
 q = Query()
 
+db2_table2 = db.table("tree")
+""" db2_table2.truncate()
 
+myDoc = {"Cod": "1","Departamento": "Gerente Financeiro","cod_Pai": "Raiz"}
+db2_table2.insert(myDoc)
+myDoc = {"Cod": "2","Departamento": "Gerente Vendas","cod_Pai": "Raiz"}
+db2_table2.insert(myDoc)
+myDoc = {"Cod": "3","Departamento": "Gerente RH","cod_Pai": "Raiz"}
+db2_table2.insert(myDoc)
+
+myDoc = {"Cod": "4","Departamento": "Peao 1","cod_Pai": "1"}
+db2_table2.insert(myDoc)
+myDoc = {"Cod": "5","Departamento": "Peao 2","cod_Pai": "1"}
+db2_table2.insert(myDoc)
+myDoc = {"Cod": "6","Departamento": "Peao 3","cod_Pai": "1"}
+db2_table2.insert(myDoc)
+myDoc = {"Cod": "7","Departamento": "Peao 4","cod_Pai": "2"}
+db2_table2.insert(myDoc)
+myDoc = {"Cod": "8","Departamento": "Peao 5","cod_Pai": "2"}
+db2_table2.insert(myDoc)
+myDoc = {"Cod": "9","Departamento": "Peao 6","cod_Pai": "3"}
+db2_table2.insert(myDoc) """
 
 def selectAll(): #select All
-    dados = db.all()
+    dados = db_dados.all()
     #for x in dados:
         #print(x)
-
     return dados
 
+def selectAllGrupo(): #select All
+    dados2 = db2_table2.all()
+    #for x in dados2:
+        #print(x)
+    return dados2
+
 def selectOne(query): #select one
-    pesquisa = db.search(q.id == query)
+    pesquisa = db_dados.search(q.id == query)
     return pesquisa
 
 def alterar(id,titulo,username,password,url,tags,notes):
-    db.update({"titulo": titulo, "username": username, "password": password, "url": url, "tags": tags, "notes": notes}, q.id == id)
+    db_dados.update({"titulo": titulo, "username": username, "password": password, "url": url, "tags": tags, "notes": notes}, q.id == id)
     
 def insertOne(titulo,username,password,url,tags,notes):
     dataHora = datetime.now().strftime('%Y%m%d-%H-%M-%S')
@@ -31,12 +58,12 @@ def insertOne(titulo,username,password,url,tags,notes):
         "tags": tags,
         "notes": notes
     }
-    db.insert(myDoc)
+    db_dados.insert(myDoc)
 
 def deleteOne(query):
-    #db.remove(q.id == query)
+    #db_dados.remove(q.id == query)
     #print("Deletando..: " + str(query))
-    db.remove(q.titulo == query)
+    db_dados.remove(q.titulo == query)
 
 def popular():
     dataHora = datetime.now().strftime('%Y%m%d-%H-%M-%S')
@@ -49,9 +76,9 @@ def popular():
         "tags": "tags5",
         "notes": "notes5"
     }    
-    db.insert(myDoc)
+    db_dados.insert(myDoc)
     print(myDoc)
 
 def teste(titulo):
     dataHora = datetime.now().strftime('%Y%m%d-%H-%M-%S')
-    db.update({"id": dataHora}, db.titulo == titulo)
+    db_dados.update({"id": dataHora}, db.titulo == titulo)

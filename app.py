@@ -4,6 +4,9 @@ from tkinter import messagebox
 import os
 from hashlib import md5, sha256
 import Banco
+import secrets
+import pyperclip
+import time
 
 #Cores
 bg="#3B3F40"
@@ -14,6 +17,8 @@ app=Tk()
 app.title("Gerenciador de senhas")
 app.geometry("1130x710")
 app.configure(background=bg)
+app.minsize(650, 450)
+#app.resizable(TRUE, TRUE)
 
 pastaApp=os.path.dirname(__file__)
 
@@ -40,6 +45,14 @@ def popularTreeview():
     entradas=Banco.selectAll()
     for x in entradas:
         tv.insert("","end",values=(x["id"],x["titulo"],x["username"],x["password"],x["url"],x["tags"],x["notes"]))
+
+def popularTreeviewGrupo():
+    tv_grupo.delete(*tv_grupo.get_children())
+    tv_grupo.insert("","0","Raiz", text="Murilo")
+    entradas=Banco.selectAllGrupo()
+    for x in entradas:
+        tv_grupo.insert(x["cod_Pai"],"end",x["Cod"],text=x["Departamento"])
+        #print(x)
 
 def itemSelectTreeview():
     try:
@@ -99,7 +112,7 @@ def editarCadastro():
         btn_gravar["text"]="Alterar"
         btn_gravar["command"]=alterarCadastro
         fr_main.pack_forget()
-        fr_cad.pack(anchor=N, fill=BOTH, expand=True, side=LEFT)
+        fr_cad.pack(anchor=N,fill=BOTH, expand=True, side=LEFT)
 
     except:
         messagebox.showinfo(title="ERRO", message="Selecione o item!!!")
@@ -107,13 +120,8 @@ def editarCadastro():
 def criptografarSenha():
     texto = senha.get().encode("utf-8")
     hashmd5 = md5(texto).hexdigest()
-    hash256 = sha256(texto).digest()
+    hash256 = sha256(texto).hexdigest()
     print(hash256)
-
-def desCriptografarSenha():
-    texto = senha.get().decode("utf-8")
-    hash = md5(texto).hexdigest()
-    print(texto)
 
 def criptBasic(tipo,word):
     senhaCripto = ""
@@ -125,10 +133,25 @@ def criptBasic(tipo,word):
             senhaCripto = senhaCripto + chr ( ord(i) - 5)
     return senhaCripto
 
+def generatePassword():
+    fr_cad.pack_forget()
+    fr_gerador_senhas.pack(anchor=N, fill=BOTH, expand=True, side=LEFT)
+
+def changeWindow(windowClose,windowOpen):
+    windowClose.pack_forget()
+    windowOpen.pack(anchor=N, fill=BOTH, expand=True, side=LEFT)
+
+def applyPass():
+    print("")
+    et_password.delete(0,END)
+    et_password.insert(END, et_senhaSugerida.get())
+    et_senhaSugerida.delete(0,END)
+    changeWindow(fr_gerador_senhas,fr_cad)
+
 # Menu 
 #Entrada - Ferramentas - Help
-print(ord("A")+5)
-print(chr(ord("A")+5))
+#print(ord("A")+5)
+#print(chr(ord("A")+5))
 barraDeMenus=Menu(app)
 menuContatos=Menu(barraDeMenus,tearoff=0)
 menuContatos.add_command(label="Nova entrada",command=novaEntrada)
@@ -154,20 +177,23 @@ app.config(menu=barraDeMenus)
 fr_main=Frame(app,borderwidth=1,relief="solid", background=bg)
 fr_main.pack(anchor=N, fill=BOTH, expand=True, side=LEFT)
 
+tv_grupo=ttk.Treeview(fr_main)
+tv_grupo.grid(column=0,row=0,padx=5,pady=5)
+
+popularTreeviewGrupo()
+
 lb_sideLeft=Label(fr_main,text="sideLeft")
-lb_sideLeft.grid(column=0,row=0,padx=100,pady=5)
+lb_sideLeft.grid(column=0,row=1,padx=100,pady=5)
 
 lb_testeCripto=Label(fr_main,text="Criptografar senha")
-lb_testeCripto.grid(column=0,row=1,padx=100,pady=5)
+lb_testeCripto.grid(column=0,row=2,padx=100,pady=5)
 
 senha=Entry(fr_main,background=bg_et,foreground=fg)
-senha.grid(column=0,row=2,padx=5,pady=5)
+senha.grid(column=0,row=3,padx=5,pady=5)
 
 btn_cripto=Button(fr_main,text="Criptografar",command=criptografarSenha)
-btn_cripto.grid(column=0,row=3,padx=5,pady=5)
+btn_cripto.grid(column=0,row=4,padx=5,pady=5)
 
-btn_desCripto=Button(fr_main,text="DesCriptografar",command=desCriptografarSenha)
-btn_desCripto.grid(column=0,row=4,padx=5,pady=5)
 
 tv=ttk.Treeview(fr_main,columns=("id","titulo","username","password","url","tags","notes"), show="headings")
 
@@ -185,11 +211,14 @@ tv.heading("username",text="Username")
 tv.heading("password",text="Password")
 tv.heading("url",text="URL")
 tv.heading("tags",text="Tags")
-tv.heading("notes",text="notes")
+tv.heading("notes",text="Notes")
 
 tv.grid(column=1,row=0,pady=5)
+barra = ttk.Scrollbar(fr_main, orient="vertical")
+barra.grid(column=2,row=0,pady=5)
 
 popularTreeview()
+
 
 fr_btn=Frame(fr_main,borderwidth=1,relief="solid")
 fr_btn.grid(column=1,row=2,pady=5)
@@ -203,17 +232,20 @@ btn_alterar.grid(column=1,row=0,padx=5,pady=5)
 btn_tv=Button(fr_btn,text="Limpar",command=clearTreeview)
 btn_tv.grid(column=2,row=0,pady=5)
 
+btn_gerador=Button(fr_btn,text="Gerador",command=generatePassword)
+btn_gerador.grid(column=3,row=0,padx=5,pady=5)
+
 btn_popular_tv=Button(fr_btn,text="Popular",command=popularTreeview)
-btn_popular_tv.grid(column=3,row=0,padx=5,pady=5)
+btn_popular_tv.grid(column=4,row=0,padx=5,pady=5)
 
 btn_delete=Button(fr_btn,text="Deletar",command=deletar)
-btn_delete.grid(column=4,row=0,pady=5)
+btn_delete.grid(column=5,row=0,pady=5)
 
 btn_entrada=Button(fr_btn,text="Adicionar",command=novaEntrada)
-btn_entrada.grid(column=5,row=0,padx=5,pady=5)
+btn_entrada.grid(column=6,row=0,padx=5,pady=5)
 
 btn_sair=Button(fr_btn,text="Sair",command=app.quit)
-btn_sair.grid(column=6,row=0,padx=5,pady=5)
+btn_sair.grid(column=7,row=0,padx=5,pady=5)
 
 lb_caminho=Label(fr_main,text="Caminho")
 lb_caminho.grid(column=1,row=3,pady=5)
@@ -322,6 +354,7 @@ et_url=Entry(fr_cad,background=bg_et,foreground=fg)
 et_tags=Entry(fr_cad,background=bg_et,foreground=fg)
 et_notes=Text(fr_cad,background=bg_et,foreground=fg)
 
+btn_gs=Button(fr_cad,text="#",command=generatePassword)
 btn_mostraSenha=Button(fr_cad,text="View",command=mostrarSenha)
 btn_limpar=Button(fr_cad,text="Limpar",background=bg_et,foreground=fg,command=limparCampos)
 btn_cancel=Button(fr_cad,text="Cancel",background=bg_et,foreground=fg,command=cancelNovaEntrada)
@@ -334,7 +367,8 @@ lb_username.place(x=10,y=65,width=80)
 et_username.place(x=100,y=65,width=500,height=30)
 
 lb_password.place(x=10,y=100,width=80)
-et_password.place(x=100,y=100,width=450,height=30)
+et_password.place(x=100,y=100,width=400,height=30)
+btn_gs.place(x=505,y=100,width=45,height=30)
 btn_mostraSenha.place(x=555,y=100,width=45,height=30)
 
 lb_url.place(x=10,y=135,width=80)
@@ -353,5 +387,135 @@ btn_cancel.place(x=435,y=350,width=80)
 btn_gravar.place(x=520,y=350,width=80)
 
 ############# Fim Cadastro #############
+
+############# Gerador de senhas #############
+fr_gerador_senhas=Frame(app,borderwidth=1,relief="solid", background=bg)
+#fr_gerador_senhas.pack(anchor=N, fill=BOTH, expand=True, side=LEFT)
+
+def gerarSenha():    
+    size=int(sb_size_pass.get())
+    #size=int(sc_escala.get())
+    senhaAleatoria = secrets.token_urlsafe(size)
+    et_senhaSugerida.delete(0,END)
+    senhaAleatoriaB = senhaAleatoria[0:size]
+    #print("Tamanho da senha:"+ str(len(senhaAleatoriaB)))
+    et_senhaSugerida.insert(END, senhaAleatoriaB)
+    if size <= 5:
+        qualidadeSenha="Péssima"
+    elif size >=6 and size <=10 :
+        qualidadeSenha="Ruim"
+    elif size >=11 and size <=15 :
+        qualidadeSenha="Boa"
+    else:
+        qualidadeSenha="Ótima"
+    lb_qualityPassB["text"]=qualidadeSenha
+
+def copiarSenha():
+    senhaGerada=et_senhaSugerida.get()
+    pyperclip.copy(str(senhaGerada))
+    #print("Senha Gerada.:"+ str(senhaGerada))
+    print(pyperclip.copy(et_senhaSugerida.get()))
+    for x in range(6):
+        print(x)
+        time.sleep(2)
+    senhaComparar=pyperclip.paste()
+    if senhaGerada == str(senhaComparar):
+        pyperclip.copy("Limpando area de transferencia")
+
+def mostrarSenha():
+    if et_senhaSugerida["show"]=="":
+        et_senhaSugerida["show"]="*"
+        btn_view["text"]="View"
+    else:
+        et_senhaSugerida["show"]=""
+        btn_view["text"]="Hide"
+
+def sb_size_pass_function(event):
+    gerarSenha()
+    sc_escala.set(sb_size_pass.get())
+
+def sc_escala_function(event):
+    sb_size_pass.delete(0,END)
+    sb_size_pass.insert(END,sc_escala.get())
+    gerarSenha()
+
+
+############# Frame 1 #############
+fr_generate1=Frame(fr_gerador_senhas)
+fr_generate1.place(x=5,y=5,width=590,height=50)
+
+et_senhaSugerida=Entry(fr_generate1,show="*",width=50)
+et_senhaSugerida.grid(column=0,row=1,pady=5)
+
+btn_view=Button(fr_generate1,text="View",command=mostrarSenha)
+btn_view.grid(column=2,row=1,pady=5)
+
+btn_regerar=Button(fr_generate1,text="Gerar",command=gerarSenha)
+btn_regerar.grid(column=3,row=1,pady=5)
+
+btn_copy=Button(fr_generate1,text="Copy",command=copiarSenha)
+btn_copy.grid(column=4,row=1,pady=5)
+
+############# Frame 2 #############
+
+fr_generate2=Frame(fr_gerador_senhas)
+fr_generate2.place(x=5,y=60,width=590,height=60)
+
+varBarra=DoubleVar()
+varBarra.set(40)
+
+pb_qualityPass=ttk.Progressbar(fr_generate2,variable=varBarra,maximum=100)
+pb_qualityPass.grid(column=0,row=2,pady=5)
+
+lb_qualityPass=Label(fr_generate2,text="Password Quality: ")
+lb_qualityPass.grid(column=0,row=3,pady=5)
+
+lb_qualityPassB=Label(fr_generate2,text="xxx")
+lb_qualityPassB.grid(column=1,row=3,pady=5)
+
+############# Frame 3 #############
+
+fr_generate3=Frame(fr_gerador_senhas)
+fr_generate3.place(x=5,y=115,width=590,height=220)
+
+nb_pass=ttk.Notebook(fr_generate3)
+nb_pass.place(x=0,y=0,width=590,height=220)
+#nb_pass.place(x=50,y=50,width=200,height=250)
+
+tb1_pass=Frame(nb_pass)
+
+nb_pass.add(tb1_pass,text="Password")
+
+fr_generate3_a=Frame(fr_generate3)
+fr_generate3_a.place(x=5,y=35)
+
+lb_length=Label(fr_generate3_a,text="Tamanho:")
+lb_length.grid(column=0,row=0)
+
+sc_escala=Scale(fr_generate3_a,from_=1,to=30,orient=HORIZONTAL)
+sc_escala.set(6)
+sc_escala.grid(column=1,row=0,pady=1)
+sc_escala.bind('<B1-Motion>', sc_escala_function)
+
+sb_size_pass=Spinbox(fr_generate3_a,from_=1, to=30)
+sb_size_pass.delete(0,END)
+sb_size_pass.insert(END,6)
+sb_size_pass.grid(column=2,row=0,pady=1)
+
+sb_size_pass.bind('<Button-1>', sb_size_pass_function)
+
+
+############# Frame 4 #############
+
+fr_generate4=Frame(fr_gerador_senhas,relief="solid")
+fr_generate4.place(x=5,y=350,width=590,height=40)
+
+btn_generate_close=Button(fr_generate4,text="Sair",command=app.quit)
+btn_generate_close.grid(column=0,row=0,pady=5)
+
+btn_apply_password=Button(fr_generate4,text="Aplicar senha",command=applyPass)
+btn_apply_password.grid(column=1,row=0,pady=5)
+
+############# Fim Gerador de senhas #############
 
 app.mainloop()
