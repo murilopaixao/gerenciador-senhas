@@ -1,2 +1,5 @@
+customtkinter==5.2.2
+darkdetect==0.8.0
+packaging==23.2
 pyperclip==1.8.2
 tinydb==4.8.0

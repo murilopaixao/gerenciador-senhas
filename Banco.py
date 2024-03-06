@@ -6,7 +6,11 @@ db_dados = db.table("dados")
 q = Query()
 
 db2_table2 = db.table("tree")
+
+db_config = db.table("config")
+#db_config.truncate()
 """ db2_table2.truncate()
+
 
 myDoc = {"Cod": "1","Departamento": "Gerente Financeiro","cod_Pai": "Raiz"}
 db2_table2.insert(myDoc)
@@ -27,6 +31,19 @@ myDoc = {"Cod": "8","Departamento": "Peao 5","cod_Pai": "2"}
 db2_table2.insert(myDoc)
 myDoc = {"Cod": "9","Departamento": "Peao 6","cod_Pai": "3"}
 db2_table2.insert(myDoc) """
+
+def configInicio():
+    #password = db_config.search(q.senhaInicial)
+    password = db_config.get(doc_id=1)
+    if password is None:
+        password = []    
+    return password
+
+def configSenhaInicial(password):
+    db_config.insert({"senhaInicial": password})
+    #db_config.update({"senhaInicial": password})
+    
+    
 
 def selectAll(): #select All
     dados = db_dados.all()
